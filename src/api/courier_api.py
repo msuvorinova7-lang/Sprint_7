@@ -1,24 +1,27 @@
+import allure
 import requests
+from src.api.base_api import BaseAPI
 
-class CourierAPI:
+class CourierAPI(BaseAPI):
     """Класс для работы с API курьеров"""
     
-    BASE_URL = 'https://qa-scooter.praktikum-services.ru/api/v1'
-    
     @staticmethod
+    @allure.step("Создание курьера")
     def create_courier(data):
         """Создание курьера"""
-        response = requests.post(f'{CourierAPI.BASE_URL}/courier', data=data)
+        response = requests.post(f'{BaseAPI.BASE_URL}/courier', data=data)
         return response
     
     @staticmethod
+    @allure.step("Логин курьера")
     def login_courier(data):
         """Логин курьера"""
-        response = requests.post(f'{CourierAPI.BASE_URL}/courier/login', data=data)
+        response = requests.post(f'{BaseAPI.BASE_URL}/courier/login', data=data)
         return response
     
     @staticmethod
+    @allure.step("Удаление курьера по id {courier_id}")
     def delete_courier(courier_id):
         """Удаление курьера"""
-        response = requests.delete(f'{CourierAPI.BASE_URL}/courier/{courier_id}')
+        response = requests.delete(f'{BaseAPI.BASE_URL}/courier/{courier_id}')
         return response

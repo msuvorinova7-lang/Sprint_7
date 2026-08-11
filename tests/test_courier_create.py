@@ -1,3 +1,4 @@
+import allure
 import pytest
 from src.helpers.courier_helpers import CourierHelpers
 from src.api.courier_api import CourierAPI
@@ -9,6 +10,8 @@ class TestCourierCreate:
     def helpers(self):
         return CourierHelpers()
     
+    @allure.title("Успешное создание курьера")
+    @allure.description("Проверка, что курьера можно создать с валидными данными")
     def test_create_courier_success(self, helpers):
         """Тест: можно создать курьера"""
         courier_data = helpers.register_new_courier()
@@ -22,6 +25,8 @@ class TestCourierCreate:
         delete_response = helpers.delete_courier(courier_id)
         assert delete_response.status_code == 200, "Не удалось удалить курьера"
     
+    @allure.title("Создание дубликата курьера")
+    @allure.description("Проверка, что нельзя создать двух курьеров с одинаковым логином")
     def test_create_duplicate_courier_error(self, helpers):
         """Тест: нельзя создать двух одинаковых курьеров"""
         courier_data = helpers.register_new_courier()
@@ -41,6 +46,8 @@ class TestCourierCreate:
         if courier_id:
             helpers.delete_courier(courier_id)
     
+    @allure.title("Создание курьера без обязательных полей")
+    @allure.description("Проверка ошибки при отсутствии логина или пароля")
     def test_create_courier_missing_fields(self, helpers):
         """Тест: запрос возвращает ошибку, если одного из полей нет"""
         # Без логина
@@ -52,6 +59,8 @@ class TestCourierCreate:
         assert response.status_code == 400
         assert "Недостаточно данных для создания учетной записи" in response.text
     
+    @allure.title("Проверка формата успешного ответа")
+    @allure.description("Успешный запрос должен возвращать {'ok': true}")
     def test_create_courier_success_response(self, helpers):
         """Тест: успешный запрос возвращает {"ok":true}"""
         payload = {
