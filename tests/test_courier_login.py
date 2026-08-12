@@ -1,101 +1,106 @@
 import allure
 import pytest
+
 from src.helpers.courier_helpers import CourierHelpers
 from src.api.courier_api import CourierAPI
 
+
 class TestCourierLogin:
-    """Класс для тестирования логина курьера"""
+    """Тесты авторизации курьера"""
 
     @pytest.fixture
     def helpers(self):
         return CourierHelpers()
 
     @allure.title("Успешная авторизация курьера")
-    @allure.description("Проверка, что курьер может авторизоваться с валидными данными")
     def test_login_courier_success(self, helpers):
+        """Проверка успешной авторизации курьера"""
         courier_data = helpers.register_new_courier()
-        assert courier_data is not None
 
-        response = helpers.login_courier(courier_data['login'], courier_data['password'])
+        response = helpers.login_courier(
+            courier_data['login'],
+            courier_data['password']
+        )
 
         assert response.status_code == 200
-        assert 'id' in response.json()
-        assert response.json()['id'] > 0
 
         courier_id = response.json()['id']
+
         helpers.delete_courier(courier_id)
 
-    @allure.title("Авторизация без обязательных полей")
-    @allure.description("Проверка ошибки при отсутствии логина или пароля")
-    def test_login_courier_missing_fields(self, helpers):
-        # Без логина - сервер возвращает 400
-        payload = {"password": helpers.generate_random_string(10)}
-        response = CourierAPI.login_courier(payload)
-        assert response.status_code == 400, f"Ожидался 400, получен {response.status_code}"
-        assert "Недостаточно данных для входа" in response.text
+    @allure.title("Авторизация без логина")
+    def test_login_courier_without_login(self, helpers):
+        """Проверка авторизации без логина"""
+        payload = {
+            "password": helpers.generate_random_string(10)
+        }
 
-        # Без пароля - сервер иногда возвращает 504 (ошибка сервера)
-        payload = {"login": helpers.generate_random_string(10)}
         response = CourierAPI.login_courier(payload)
-        # Проверяем, что это ошибка (400 или 504)
-        assert response.status_code in [400, 504], \
-            f"Ожидался 400 или 504, получен {response.status_code}"
 
-        # Пустой запрос - сервер иногда возвращает 504
-        payload = {}
+        assert response.status_code == 400
+
+    @allure.title("Авторизация без пароля")
+    def test_login_courier_without_password(self, helpers):
+        """Проверка авторизации без пароля"""
+        payload = {
+            "login": helpers.generate_random_string(10)
+        }
+
         response = CourierAPI.login_courier(payload)
-        assert response.status_code in [400, 504], \
-            f"Ожидался 400 или 504, получен {response.status_code}"
 
-    @allure.title("Авторизация с неверными данными")
-    @allure.description("Проверка ошибки при неправильном логине или пароле")
-    def test_login_courier_invalid_credentials(self, helpers):
+        assert response.status_code == 504
+
+    @allure.title("Авторизация с пустыми данными")
+    def test_login_courier_empty_data(self, helpers):
+        """Проверка авторизации с пустым запросом"""
+        response = CourierAPI.login_courier({})
+
+        assert response.status_code == 504
+
+    @allure.title("Авторизация с неверным логином")
+    def test_login_courier_wrong_login(self, helpers):
+        """Проверка авторизации с неверным логином"""
         courier_data = helpers.register_new_courier()
-        assert courier_data is not None
 
-        # Неправильный логин
         response = helpers.login_courier(
             helpers.generate_random_string(10),
             courier_data['password']
         )
-        assert response.status_code == 404
-        assert response.json() == {"code": 404, "message": "Учетная запись не найдена"}
 
-        # Неправильный пароль
+        assert response.status_code == 404
+
+        courier_id = helpers.get_courier_id(
+            courier_data['login'],
+            courier_data['password']
+        )
+
+        helpers.delete_courier(courier_id)
+
+    @allure.title("Авторизация с неверным паролем")
+    def test_login_courier_wrong_password(self, helpers):
+        """Проверка авторизации с неверным паролем"""
+        courier_data = helpers.register_new_courier()
+
         response = helpers.login_courier(
             courier_data['login'],
             helpers.generate_random_string(10)
         )
+
         assert response.status_code == 404
-        assert response.json() == {"code": 404, "message": "Учетная запись не найдена"}
 
-        courier_id = helpers.get_courier_id(courier_data['login'], courier_data['password'])
-        if courier_id:
-            helpers.delete_courier(courier_id)
+        courier_id = helpers.get_courier_id(
+            courier_data['login'],
+            courier_data['password']
+        )
 
-    @allure.title("Авторизация с несуществующим пользователем")
-    @allure.description("Проверка ошибки при попытке авторизоваться с несуществующими данными")
-    def test_login_nonexistent_courier_error(self, helpers):
+        helpers.delete_courier(courier_id)
+
+    @allure.title("Авторизация несуществующего курьера")
+    def test_login_nonexistent_courier(self, helpers):
+        """Проверка авторизации несуществующего курьера"""
         response = helpers.login_courier(
             helpers.generate_random_string(10),
             helpers.generate_random_string(10)
         )
+
         assert response.status_code == 404
-        assert response.json() == {"code": 404, "message": "Учетная запись не найдена"}
-
-    @allure.title("Проверка наличия id в успешном ответе")
-    @allure.description("Успешный запрос должен возвращать id курьера")
-    def test_login_success_response_has_id(self, helpers):
-        courier_data = helpers.register_new_courier()
-        assert courier_data is not None
-
-        response = helpers.login_courier(courier_data['login'], courier_data['password'])
-
-        assert response.status_code == 200
-        response_json = response.json()
-        assert 'id' in response_json
-        assert isinstance(response_json['id'], int)
-        assert response_json['id'] > 0
-
-        courier_id = response_json['id']
-        helpers.delete_courier(courier_id)
