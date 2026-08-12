@@ -28,21 +28,24 @@ class TestCourierLogin:
     @allure.title("Авторизация без обязательных полей")
     @allure.description("Проверка ошибки при отсутствии логина или пароля")
     def test_login_courier_missing_fields(self, helpers):
-        # Без логина
+        # Без логина - сервер возвращает 400
         payload = {"password": helpers.generate_random_string(10)}
         response = CourierAPI.login_courier(payload)
-        assert response.status_code == 400
+        assert response.status_code == 400, f"Ожидался 400, получен {response.status_code}"
         assert "Недостаточно данных для входа" in response.text
 
-        # Без пароля (сервер иногда возвращает 504)
+        # Без пароля - сервер иногда возвращает 504 (ошибка сервера)
         payload = {"login": helpers.generate_random_string(10)}
         response = CourierAPI.login_courier(payload)
-        assert response.status_code in [400, 504], f"Ожидался 400 или 504, получен {response.status_code}"
+        # Проверяем, что это ошибка (400 или 504)
+        assert response.status_code in [400, 504], \
+            f"Ожидался 400 или 504, получен {response.status_code}"
 
-        # Пустой запрос
+        # Пустой запрос - сервер иногда возвращает 504
         payload = {}
         response = CourierAPI.login_courier(payload)
-        assert response.status_code in [400, 504], f"Ожидался 400 или 504, получен {response.status_code}"
+        assert response.status_code in [400, 504], \
+            f"Ожидался 400 или 504, получен {response.status_code}"
 
     @allure.title("Авторизация с неверными данными")
     @allure.description("Проверка ошибки при неправильном логине или пароле")
