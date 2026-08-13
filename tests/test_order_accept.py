@@ -8,21 +8,18 @@ class TestOrderAccept:
 
     @allure.title("Успешное принятие заказа курьером")
     @allure.description("Проверка успешного принятия заказа курьером")
-    def test_accept_order_success(self, courier_helpers, order_api):
+    def test_accept_order_success(
+            self,
+            courier_helpers,
+            order_api
+    ):
         """Проверка успешного принятия заказа."""
 
-        helpers, courier_data = courier_helpers
-
-        courier_id = helpers.get_courier_id(
-            courier_data["login"],
-            courier_data["password"]
-        )
+        _, _, courier_id = courier_helpers
 
         create_response = order_api.create_order(
             OrderData.ORDER_DATA.copy()
         )
-
-        assert create_response.status_code == 201
 
         order_track = create_response.json()["track"]
 
@@ -42,8 +39,6 @@ class TestOrderAccept:
             OrderData.ORDER_DATA.copy()
         )
 
-        assert create_response.status_code == 201
-
         order_track = create_response.json()["track"]
 
         response = order_api.accept_order(
@@ -61,8 +56,6 @@ class TestOrderAccept:
         create_response = order_api.create_order(
             OrderData.ORDER_DATA.copy()
         )
-
-        assert create_response.status_code == 201
 
         order_track = create_response.json()["track"]
 

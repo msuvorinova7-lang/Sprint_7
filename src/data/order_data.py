@@ -1,20 +1,23 @@
 class OrderData:
-    """Тестовые данные для заказов."""
-
     ORDER_DATA = {
         "firstName": "Иван",
         "lastName": "Иванов",
-        "address": "Москва",
-        "metroStation": 4,
-        "phone": "+7 800 355 35 35",
-        "rentTime": 5,
-        "deliveryDate": "2025-06-20",
-        "comment": "Позвонить за час"
+        "address": "Москва, ул. Тверская, 1",
+        "metroStation": 1,
+        "phone": "+7 800 555-35-35",
+        "rentTime": 2,
+        "deliveryDate": "2026-08-20",
+        "comment": "Позвонить за час",
+        "color": ["BLACK"]
     }
 
-    COLORS = [
-        [],
-        ["BLACK"],
-        ["GREY"],
-        ["BLACK", "GREY"]
-    ]
+    ORDER_DATA_WITHOUT_COLOR = {
+        "firstName": "Иван",
+        "lastName": "Иванов",
+        "address": "Москва, ул. Тверская, 1",
+        "metroStation": 1,
+        "phone": "+7 800 555-35-35",
+        "rentTime": 2,
+        "deliveryDate": "2026-08-20",
+        "comment": "Позвонить за час"
+    }

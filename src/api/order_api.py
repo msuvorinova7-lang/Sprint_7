@@ -1,37 +1,80 @@
-import allure
 import requests
+
 from src.api.base_api import BaseAPI
 
+
 class OrderAPI(BaseAPI):
-    """Класс для работы с API заказов"""
+    """Класс для работы с API заказов."""
 
-    @staticmethod
-    @allure.step("Создание заказа")
-    def create_order(order_data):
-        response = requests.post(f'{BaseAPI.BASE_URL}/orders', json=order_data)
-        return response
+    CREATE_ORDER_ENDPOINT = "/orders"
+    GET_ORDER_ENDPOINT = "/orders/track"
+    ORDERS_LIST_ENDPOINT = "/orders"
+    ACCEPT_ORDER_ENDPOINT = "/orders/accept"
+    CANCEL_ORDER_ENDPOINT = "/orders/cancel"
 
-    @staticmethod
-    @allure.step("Получение списка заказов")
-    def get_orders_list():
-        response = requests.get(f'{BaseAPI.BASE_URL}/orders')
-        return response
+    def create_order(self, payload):
+        """Создаёт новый заказ."""
 
-    @staticmethod
-    @allure.step("Отмена заказа по треку: {track}")
-    def cancel_order(track):
-        response = requests.put(f'{BaseAPI.BASE_URL}/orders/cancel', params={'track': track})
-        return response
+        return requests.post(
+            self.BASE_URL + self.CREATE_ORDER_ENDPOINT,
+            json=payload
+        )
 
-    @staticmethod
-    @allure.step("Принятие заказа {order_id} курьером {courier_id}")
-    def accept_order(order_id, courier_id):
-        response = requests.put(f'{BaseAPI.BASE_URL}/orders/accept/{order_id}',
-                                params={'courierId': courier_id})
-        return response
+    def get_order_by_track(self, track=None):
+        """Получает заказ по номеру трека."""
 
-    @staticmethod
-    @allure.step("Получение заказа по треку: {track}")
-    def get_order_by_track(track):
-        response = requests.get(f'{BaseAPI.BASE_URL}/orders/track', params={'t': track})
-        return response
+        params = {}
+
+        if track is not None:
+            params["t"] = track
+
+        return requests.get(
+            self.BASE_URL + self.GET_ORDER_ENDPOINT,
+            params=params
+        )
+
+    def get_orders_list(self):
+        """Получает список заказов."""
+
+        return requests.get(
+            self.BASE_URL + self.ORDERS_LIST_ENDPOINT
+        )
+
+    def accept_order(self, track, courier_id):
+        """Принимает заказ курьером."""
+
+        # Получаем заказ по треку
+        order_response = self.get_order_by_track(track)
+
+        if order_response.status_code != 200:
+            return order_response
+
+        order_data = order_response.json()
+
+        # В ответе API заказ находится внутри ключа "order"
+        order = order_data.get("order")
+
+        if not order:
+            return order_response
+
+        order_id = order.get("id")
+
+        params = {}
+
+        if courier_id is not None:
+            params["courierId"] = courier_id
+
+        return requests.put(
+            f"{self.BASE_URL}{self.ACCEPT_ORDER_ENDPOINT}/{order_id}",
+            params=params
+        )
+
+    def cancel_order(self, track):
+        """Отменяет заказ по треку."""
+
+        return requests.put(
+            self.BASE_URL + self.CANCEL_ORDER_ENDPOINT,
+            params={
+                "track": track
+            }
+        )
