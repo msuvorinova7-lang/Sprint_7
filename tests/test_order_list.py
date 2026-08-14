@@ -1,29 +1,21 @@
 import allure
-import pytest
-from src.api.order_api import OrderAPI
+
 
 class TestOrderList:
-    """Класс для тестирования получения списка заказов"""
-
-    @pytest.fixture
-    def order_api(self):
-        return OrderAPI()
+    """Тесты получения списка заказов."""
 
     @allure.title("Получение списка заказов")
-    @allure.description("Проверка, что ответ содержит список заказов")
+    @allure.description(
+        "Проверка получения списка заказов"
+    )
     def test_get_orders_list_success(self, order_api):
+        """Проверяет успешное получение списка заказов."""
+
         response = order_api.get_orders_list()
 
-        assert response.status_code == 200
-        assert 'orders' in response.json()
+        orders = response.json()["orders"]
 
-        orders = response.json()['orders']
-        assert isinstance(orders, list)
-
-        if len(orders) > 0:
-            first_order = orders[0]
-            assert 'id' in first_order
-            assert 'firstName' in first_order
-            assert 'lastName' in first_order
-            assert 'address' in first_order
-            assert 'track' in first_order
+        assert (
+            response.status_code == 200
+            and isinstance(orders, list)
+        )

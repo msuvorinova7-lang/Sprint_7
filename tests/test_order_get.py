@@ -7,11 +7,13 @@ class TestOrderGet:
     """Тесты получения заказа по номеру трека."""
 
     @allure.title("Получение заказа по треку")
-    @allure.description("Проверка получения существующего заказа по треку")
+    @allure.description(
+        "Проверка получения существующего заказа по треку"
+    )
     def test_get_order_by_track_success(
-            self,
-            create_test_order,
-            order_api
+        self,
+        create_test_order,
+        order_api
     ):
         """Проверка получения существующего заказа."""
 
@@ -26,7 +28,9 @@ class TestOrderGet:
         assert order["order"]["track"] == track
 
     @allure.title("Получение заказа без трека")
-    @allure.description("Проверка ошибки при отсутствии номера заказа")
+    @allure.description(
+        "Проверка ошибки при отсутствии номера заказа"
+    )
     def test_get_order_without_track_error(self, order_api):
         """Проверка получения заказа без трека."""
 
@@ -67,15 +71,22 @@ class TestOrderGet:
         assert response.status_code == 500
 
     @allure.title("Получение отменённого заказа")
+    @allure.description(
+        "Проверка невозможности получить заказ после его отмены"
+    )
     def test_get_order_after_cancellation(
-            self,
-            create_test_order,
-            order_api
+        self,
+        create_test_order,
+        order_api
     ):
-        """Проверка получения отменённого заказа."""
+        """Проверка получения заказа после отмены."""
 
         track = create_test_order
 
+        cancel_response = order_api.cancel_order(track)
+
+        assert cancel_response.status_code == 200
+
         response = order_api.get_order_by_track(track)
 
-        assert response.status_code == 200
+        assert response.status_code == 404
