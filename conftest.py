@@ -18,7 +18,6 @@ def courier_helpers():
     и удаляет его после завершения теста.
     """
     helpers = CourierHelpers()
-
     courier_data = helpers.register_new_courier()
 
     if courier_data is None:

@@ -17,7 +17,7 @@ class OrderAPI(BaseAPI):
     def create_order(self, payload):
         """Создаёт новый заказ."""
         return requests.post(
-            self.BASE_URL + self.CREATE_ORDER_ENDPOINT,
+            f"{self.BASE_URL}{self.CREATE_ORDER_ENDPOINT}",
             json=payload
         )
 
@@ -31,7 +31,7 @@ class OrderAPI(BaseAPI):
             params["t"] = track
 
         return requests.get(
-            self.BASE_URL + self.GET_ORDER_ENDPOINT,
+            f"{self.BASE_URL}{self.GET_ORDER_ENDPOINT}",
             params=params
         )
 
@@ -39,25 +39,25 @@ class OrderAPI(BaseAPI):
     def get_orders_list(self):
         """Получает список заказов."""
         return requests.get(
-            self.BASE_URL + self.ORDERS_LIST_ENDPOINT
+            f"{self.BASE_URL}{self.ORDERS_LIST_ENDPOINT}"
         )
 
     @allure.step("Принятие заказа курьером")
     def accept_order(self, track, courier_id):
         """Принимает заказ курьером."""
 
+        if track is None:
+            return requests.put(
+                f"{self.BASE_URL}{self.ACCEPT_ORDER_ENDPOINT}/",
+                params={"courierId": courier_id}
+            )
+
         order_response = self.get_order_by_track(track)
 
         if order_response.status_code != 200:
             return order_response
 
-        order_data = order_response.json()
-        order = order_data.get("order")
-
-        if not order:
-            return order_response
-
-        order_id = order.get("id")
+        order_id = order_response.json()["order"]["id"]
 
         params = {}
 
@@ -73,8 +73,6 @@ class OrderAPI(BaseAPI):
     def cancel_order(self, track):
         """Отменяет заказ по треку."""
         return requests.put(
-            self.BASE_URL + self.CANCEL_ORDER_ENDPOINT,
-            params={
-                "track": track
-            }
+            f"{self.BASE_URL}{self.CANCEL_ORDER_ENDPOINT}",
+            params={"track": track}
         )

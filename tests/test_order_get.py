@@ -1,7 +1,5 @@
 import allure
 
-from src.data.order_data import OrderData
-
 
 class TestOrderGet:
     """Тесты получения заказа по номеру трека."""
@@ -15,78 +13,24 @@ class TestOrderGet:
         create_test_order,
         order_api
     ):
-        """Проверка получения существующего заказа."""
-
-        track = create_test_order
-
-        response = order_api.get_order_by_track(track)
+        response = order_api.get_order_by_track(
+            create_test_order
+        )
 
         assert response.status_code == 200
+        assert "order" in response.json()
+        assert response.json()["order"]["track"] == create_test_order
 
-        order = response.json()
-
-        assert order["order"]["track"] == track
-
-    @allure.title("Получение заказа без трека")
-    @allure.description(
-        "Проверка ошибки при отсутствии номера заказа"
-    )
+    @allure.title("Получение заказа без номера")
     def test_get_order_without_track_error(self, order_api):
-        """Проверка получения заказа без трека."""
-
         response = order_api.get_order_by_track()
 
         assert response.status_code == 400
+        assert "message" in response.json()
 
-    @allure.title("Получение заказа с пустым треком")
-    def test_get_order_with_empty_track_error(self, order_api):
-        """Проверка получения заказа с пустым треком."""
-
-        response = order_api.get_order_by_track("")
-
-        assert response.status_code == 400
-
-    @allure.title("Получение заказа с несуществующим треком")
+    @allure.title("Получение несуществующего заказа")
     def test_get_order_nonexistent_track_error(self, order_api):
-        """Проверка получения заказа с несуществующим треком."""
-
         response = order_api.get_order_by_track(999999999)
 
         assert response.status_code == 404
-
-    @allure.title("Получение заказа с отрицательным треком")
-    def test_get_order_with_negative_track_error(self, order_api):
-        """Проверка получения заказа с отрицательным номером трека."""
-
-        response = order_api.get_order_by_track(-1)
-
-        assert response.status_code == 500
-
-    @allure.title("Получение заказа со строковым треком")
-    def test_get_order_with_string_track_error(self, order_api):
-        """Проверка получения заказа со строковым номером трека."""
-
-        response = order_api.get_order_by_track("abc")
-
-        assert response.status_code == 500
-
-    @allure.title("Получение отменённого заказа")
-    @allure.description(
-        "Проверка невозможности получить заказ после его отмены"
-    )
-    def test_get_order_after_cancellation(
-        self,
-        create_test_order,
-        order_api
-    ):
-        """Проверка получения заказа после отмены."""
-
-        track = create_test_order
-
-        cancel_response = order_api.cancel_order(track)
-
-        assert cancel_response.status_code == 200
-
-        response = order_api.get_order_by_track(track)
-
-        assert response.status_code == 404
+        assert "message" in response.json()

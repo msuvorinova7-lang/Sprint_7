@@ -10,13 +10,15 @@ class CourierHelpers:
     @staticmethod
     def generate_random_string(length):
         """Генерирует случайную строку."""
-
         letters = string.ascii_lowercase
-
         return ''.join(
             random.choice(letters)
             for _ in range(length)
         )
+
+    def create_courier(self, courier_data):
+        """Создаёт курьера."""
+        return CourierAPI.create_courier(courier_data)
 
     def register_new_courier(self):
         """Создаёт нового уникального курьера."""
@@ -27,7 +29,7 @@ class CourierHelpers:
             "firstName": self.generate_random_string(10)
         }
 
-        response = CourierAPI.create_courier(courier_data)
+        response = self.create_courier(courier_data)
 
         if response.status_code != 201:
             return None
@@ -41,26 +43,24 @@ class CourierHelpers:
     def get_courier_id(self, login, password):
         """Получает id курьера."""
 
-        payload = {
+        response = CourierAPI.login_courier({
             "login": login,
             "password": password
-        }
+        })
 
-        response = CourierAPI.login_courier(payload)
+        if response.status_code != 200:
+            raise RuntimeError("Не удалось получить id курьера")
 
         return response.json()["id"]
 
     def login_courier(self, login, password):
         """Авторизует курьера."""
 
-        payload = {
+        return CourierAPI.login_courier({
             "login": login,
             "password": password
-        }
-
-        return CourierAPI.login_courier(payload)
+        })
 
     def delete_courier(self, courier_id):
         """Удаляет курьера."""
-
         return CourierAPI.delete_courier(courier_id)

@@ -1,37 +1,26 @@
 import allure
-import pytest
-import requests
 
-from src.helpers.courier_helpers import CourierHelpers
 from src.api.courier_api import CourierAPI
 
 
 class TestCourierDelete:
-    """Класс для тестирования удаления курьера"""
-
-    @pytest.fixture
-    def helpers(self):
-        return CourierHelpers()
+    """Тесты удаления курьера."""
 
     @allure.title("Успешное удаление курьера")
-    def test_delete_courier_success(self, helpers):
-        """Тест: успешное удаление курьера"""
-        courier_data = helpers.register_new_courier()
+    @allure.description(
+        "Проверка успешного удаления существующего курьера"
+    )
+    def test_delete_courier_success(self, courier_helpers):
+        _, _, courier_id = courier_helpers
 
-        courier_id = helpers.get_courier_id(
-            courier_data['login'],
-            courier_data['password']
-        )
-
-        response = helpers.delete_courier(courier_id)
+        response = CourierAPI.delete_courier(courier_id)
 
         assert response.status_code == 200
         assert response.json() == {"ok": True}
 
     @allure.title("Удаление курьера с несуществующим id")
-    def test_delete_courier_invalid_id_error(self, helpers):
-        """Тест: ошибка при удалении с несуществующим id"""
-        response = helpers.delete_courier(999999)
+    def test_delete_courier_invalid_id(self):
+        response = CourierAPI.delete_courier(999999)
 
         assert response.status_code == 404
         assert response.json() == {
@@ -40,10 +29,11 @@ class TestCourierDelete:
         }
 
     @allure.title("Удаление курьера без id")
-    def test_delete_courier_without_id_error(self, helpers):
-        """Тест: ошибка при удалении без id"""
-        response = requests.delete(
-            f'{CourierAPI.BASE_URL}/courier/'
-        )
+    def test_delete_courier_without_id(self):
+        response = CourierAPI.delete_courier(None)
 
         assert response.status_code == 404
+        assert response.json() == {
+            "code": 404,
+            "message": "Not Found."
+        }
