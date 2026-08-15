@@ -1,0 +1,31 @@
+# Виртуальное окружение
+venv/
+env/
+ENV/
+.venv/
+
+# Файлы Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Allure отчеты
+allure_results/
+allure-report/
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Логи
+*.log
+pytest_cache/
+.tox/
+.coverage
